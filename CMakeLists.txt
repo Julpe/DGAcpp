@@ -25,8 +25,9 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
 endif()
 
-add_executable(DGAcpp src/dga_main.cpp)
+file(GLOB SOURCES "src/*.cpp")
+add_executable(DGAcpp ${SOURCES})
 
-target_include_directories(DGAcpp PUBLIC "../header_files/")
-target_compile_options(DGAcpp PUBLIC -march=native -Wall) #-O3)
+target_include_directories(DGAcpp PUBLIC "header_files" "src")
+target_compile_options(DGAcpp PUBLIC -march=native -Wall -mavx2 -ffast-math) #-O3)
 target_link_libraries(DGAcpp PUBLIC xtensor xtensor::optimize xtensor::use_xsimd HighFive yaml-cpp MPI::MPI_CXX)
