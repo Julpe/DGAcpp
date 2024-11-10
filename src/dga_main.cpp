@@ -1,14 +1,13 @@
+#include <hamiltonian.h>
+#include <mpi.h>
+#include <yaml-cpp/yaml.h>
+
 #include <filesystem>
+#include <highfive/highfive.hpp>
 #include <iostream>
 
-#include "highfive/highfive.hpp"
-#include "mpi.h"
-#include "xtensor/xarray.hpp"
-#include "yaml-cpp/yaml.h"
-
-using namespace std;
-/*
-void listDatasets(const HighFive::Group& group, const string& prefix = "") {
+void listDatasets(const HighFive::Group& group,
+                  const std::string& prefix = "") {
     // List objects in the current group
     for (const auto& name : group.listObjectNames()) {
         // Construct the full path
@@ -23,7 +22,7 @@ void listDatasets(const HighFive::Group& group, const string& prefix = "") {
             listDatasets(group.getGroup(name), fullPath);
         }
     }
-}*/
+}
 
 int main(int argc, char** argv) {
     int comm_rank, comm_size;
@@ -32,9 +31,21 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 
-    filesystem::path cwd = filesystem::current_path();
-    filesystem::path relative_filepath("/src/dga_config.yaml");
-    string config_path = (cwd / relative_filepath).string();
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::filesystem::path relative_filepath("/src/dga_config.yaml");
+    std::string config_path = (cwd / relative_filepath).string();
+
+    HighFive::File file(
+        "/home/julpe/Documents/OneDrive/Desktop/Data/1p-data.hdf5",
+        HighFive::File::ReadOnly);
+    auto test = file.listAttributeNames();
+    auto test2 = file.listObjectNames();
+
+    /*
+for (size_t i = 0; i < hopping_elements_size; ++i) {
+    std::cout << _kinetic_r_grid(i, xt::all(), xt::all(), xt::all())
+              << "\n";
+}*/
 
     YAML::Node config = YAML::LoadFile("dga_config.yaml");
 

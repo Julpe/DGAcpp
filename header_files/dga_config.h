@@ -4,8 +4,6 @@
 
 #include <tuple>
 
-using namespace std;
-
 class ConfigBase {};
 
 class BoxSizeConfig : public ConfigBase {
@@ -17,7 +15,7 @@ class BoxSizeConfig : public ConfigBase {
 
 class LatticeConfig : public ConfigBase {
    public:
-    tuple<uint8_t, uint8_t, uint8_t> nk, nq;
-    LatticeConfig(tuple<uint8_t, uint8_t, uint8_t> nk,
-                  tuple<uint8_t, uint8_t, uint8_t> nq);
+    std::tuple<uint8_t, uint8_t, uint8_t> nk, nq;
+    LatticeConfig(std::tuple<uint8_t, uint8_t, uint8_t> nk,
+                  std::tuple<uint8_t, uint8_t, uint8_t> nq);
 };
