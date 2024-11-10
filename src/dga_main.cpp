@@ -1,53 +1,93 @@
 #include <hamiltonian.h>
+#include <input_parser.h>
 #include <mpi.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/spdlog.h>
 #include <yaml-cpp/yaml.h>
 
 #include <filesystem>
 #include <highfive/highfive.hpp>
 #include <iostream>
 
-void listDatasets(const HighFive::Group& group,
-                  const std::string& prefix = "") {
-    // List objects in the current group
-    for (const auto& name : group.listObjectNames()) {
-        // Construct the full path
-        std::string fullPath = prefix + "/" + name;
-
-        // Check if the object is a dataset or another group
-        if (group.getObjectType(name) == HighFive::ObjectType::Dataset) {
-            std::cout << "Dataset: " << fullPath << std::endl;
-        } else if (group.getObjectType(name) == HighFive::ObjectType::Group) {
-            std::cout << "Group: " << fullPath << std::endl;
-            // Recursively list contents of sub-groups
-            listDatasets(group.getGroup(name), fullPath);
-        }
-    }
-}
-
 int main(int argc, char** argv) {
+    // INITIALIZE MPI
     int comm_rank, comm_size;
-
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 
-    std::filesystem::path cwd = std::filesystem::current_path();
-    std::filesystem::path relative_filepath("/src/dga_config.yaml");
-    std::string config_path = (cwd / relative_filepath).string();
+    // INITIALIZE LOGGING, MAX FILE SIZE IS 5MB
+    std::shared_ptr<spdlog::logger> logger = spdlog::rotating_logger_st(
+        "dga_logger", "dga_log.log", 5 * 1024 * 1024, 5);
+    spdlog::set_default_logger(logger);
 
-    HighFive::File file(
-        "/home/julpe/Documents/OneDrive/Desktop/Data/1p-data.hdf5",
-        HighFive::File::ReadOnly);
-    auto test = file.listAttributeNames();
-    auto test2 = file.listObjectNames();
+    // PARSING COMMAND LINE ARGUMENTS
+    InputParser parser(argc, argv);
 
-    /*
-for (size_t i = 0; i < hopping_elements_size; ++i) {
-    std::cout << _kinetic_r_grid(i, xt::all(), xt::all(), xt::all())
-              << "\n";
-}*/
+    // DGA CONFIG
+    std::string dga_config_path =
+        (std::filesystem::current_path() / "dga_config.yaml").string();
+    if (parser.cmd_option_exists("-c")) {
+        dga_config_path = std::filesystem::path(parser.get_cmd_option("-c"));
+        logger->info("Custom config filepath provided, using \'{}\'.",
+                     dga_config_path);
+    } else {
+        logger->info("Custom config filepath not set, defaulting to \'{}\'.",
+                     dga_config_path);
+    }
 
-    YAML::Node config = YAML::LoadFile("dga_config.yaml");
+    try {
+        YAML::Node config = YAML::LoadFile(dga_config_path);
+    } catch (const YAML::BadFile& e) {
+        logger->info("File {} could not be found.", dga_config_path);
+        logger->debug(e.what());
+        exit(1);
+    } catch (const YAML::ParserException& e) {
+        logger->info("File has invalid format.");
+        logger->debug(e.what());
+        exit(1);
+    }
+
+    // DGA INPUT DATA
+    std::string one_p_data_path =
+        (std::filesystem::current_path() / "1p-data.hdf5");
+    if (parser.cmd_option_exists("-d")) {
+        one_p_data_path = std::filesystem::path(parser.get_cmd_option("-d"));
+        logger->info("Custom path to 1-p data provided, using \'{}\'.",
+                     one_p_data_path);
+    } else {
+        logger->info("Custom path to 1-p data not set, defaulting to \'{}\'.",
+                     one_p_data_path);
+    }
+
+    try {
+        HighFive::File one_p_data_file(one_p_data_path,
+                                       HighFive::File::ReadOnly);
+    } catch (const HighFive::FileException& e) {
+        logger->info("File {} could not be found.", one_p_data_path);
+        logger->debug(e.what());
+        exit(1);
+    }
+
+    // DGA INPUT DATA
+    std::string g4iw_data_path =
+        (std::filesystem::current_path() / "g4iw_sym.hdf5");
+    if (parser.cmd_option_exists("-g")) {
+        one_p_data_path = std::filesystem::path(parser.get_cmd_option("-g"));
+        logger->info("Custom path to g4iw provided, using \'{}\'.",
+                     g4iw_data_path);
+    } else {
+        logger->info("Custom path to g4iw not set, defaulting to \'{}\'.",
+                     g4iw_data_path);
+    }
+
+    try {
+        HighFive::File g4iw_data_file(g4iw_data_path, HighFive::File::ReadOnly);
+    } catch (const HighFive::FileException& e) {
+        logger->info("File {} could not be found.", g4iw_data_path);
+        logger->debug(e.what());
+        exit(1);
+    }
 
     MPI_Finalize();
     return 0;

@@ -3,7 +3,7 @@
         {
             "type": "shell",
             "label": "cmake-build",
-            "command": "cmake -DCMAKE_PREFIX_PATH=/usr/ -B build .; cmake --build build",
+            "command": "cmake -DCMAKE_PREFIX_PATH=/usr/ -B build .; cmake --build build -j8",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

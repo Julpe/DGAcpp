@@ -5,11 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "Build and Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/DGAcpp",
-            "args": [],
+            "args": [
+                /*"-c",
+                "test1",
+                "-d",
+                "test2",
+                "-g",
+                "test3"*/
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

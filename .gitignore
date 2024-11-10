@@ -9,6 +9,8 @@ _UpgradeReport_Files/
 *.npy
 *.dat
 *.txt
+*.log
+*.hdf5
 
 Thumbs.db
 Desktop.ini

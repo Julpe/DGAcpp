@@ -1,10 +1,17 @@
 #pragma once
 
-#include <stdint.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/spdlog.h>
 
 #include <tuple>
 
-class ConfigBase {};
+class ConfigBase {
+   private:
+    std::shared_ptr<spdlog::logger> _logger;
+
+   public:
+    ConfigBase();
+};
 
 class BoxSizeConfig : public ConfigBase {
    public:
