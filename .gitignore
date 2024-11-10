@@ -10,7 +10,6 @@ _UpgradeReport_Files/
 *.dat
 *.txt
 *.log
-*.hdf5
 
 Thumbs.db
 Desktop.ini
